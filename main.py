@@ -121,11 +121,7 @@ async def кнопка(ctx):
     )
     await ctx.send(embed=embed, view=TicketView())
 
-BOT_TOKEN = os.environ.get("DISCORD_TOKEN")
+bot.run('MTU1ODU0OTY1MzA0ODM5NzgzNQ.GXGtsi.wdhyuuHuI973BiQAVK82e1PNxBFqee0RLlJyXM')
 
-if not BOT_TOKEN:
-    print("КРИТИЧЕСКАЯ ОШИБКА: Переменная окружения DISCORD_TOKEN не найдена!")
-else:
-    bot.run('MTU1ODU0OTY1MzA0ODM5NzgzNQ.GXGtsi.wdhyuuHuI973BiQAVK82e1PNxBFqee0RLlJyXM')
 
 
