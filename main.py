@@ -1,3 +1,17 @@
+# --- ЗАПЛАТКА ДЛЯ PYTHON 3.13+ ---
+import sys
+import types
+if 'audioop' not in sys.modules:
+    sys.modules['audioop'] = types.ModuleType('audioop')
+# ---------------------------------
+
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import discord
+from discord import app_commands
+from discord.ext import commands
+
 import discord
 from discord import app_commands
 from discord.ext import commands
