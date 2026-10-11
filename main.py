@@ -1,9 +1,18 @@
-# --- ЗАПЛАТКА ДЛЯ PYTHON 3.13+ ---
+# --- ЗАПЛАТКА ДЛЯ PYTHON 3.13+ И АСИНХРОННОСТИ ---
 import sys
 import types
+import asyncio
+
 if 'audioop' not in sys.modules:
     sys.modules['audioop'] = types.ModuleType('audioop')
-# ---------------------------------
+
+# Принудительно создаем и устанавливаем цикл событий для MainThread
+try:
+    asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+# -------------------------------------------------
 
 import os
 import threading
@@ -33,10 +42,8 @@ threading.Thread(target=run_health_server, daemon=True).start()
 
 MOD_CHANNEL_ID = 1558487534835605595  # ID вашего канала
 
-# ИСПРАВЛЕНО: Убрали title="Заполнение тикета" из заголовка класса
 class TicketModal(discord.ui.Modal):
     def __init__(self, *args, **kwargs) -> None:
-        # ИСПРАВЛЕНО: Передаем заголовок прямо в конструктор super()
         super().__init__(title="Заполнение тикета", *args, **kwargs)
         
         self.topic = discord.ui.InputText(label="Тема обращения", placeholder=" НИК ")
@@ -120,4 +127,5 @@ if not BOT_TOKEN:
     print("КРИТИЧЕСКАЯ ОШИБКА: Переменная окружения DISCORD_TOKEN не найдена!")
 else:
     bot.run('MTU1ODU0OTY1MzA0ODM5NzgzNQ.Gf2tgr.7BJoXwID1NmkP6gYke_gzU-xql6pzWrW-uBitI')
+
 
