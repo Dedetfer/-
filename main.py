@@ -33,9 +33,11 @@ threading.Thread(target=run_health_server, daemon=True).start()
 
 MOD_CHANNEL_ID = 1558487534835605595  # ID вашего канала
 
-class TicketModal(discord.ui.Modal, title="Заполнение тикета"):
+# ИСПРАВЛЕНО: Убрали title="Заполнение тикета" из заголовка класса
+class TicketModal(discord.ui.Modal):
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+        # ИСПРАВЛЕНО: Передаем заголовок прямо в конструктор super()
+        super().__init__(title="Заполнение тикета", *args, **kwargs)
         
         self.topic = discord.ui.InputText(label="Тема обращения", placeholder=" НИК ")
         self.description = discord.ui.InputText(
