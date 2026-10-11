@@ -1,7 +1,33 @@
+import os
+from threading import Thread
+from flask import Flask
 import discord
 from discord import app_commands
 from discord.ext import commands
 
+# ==========================================
+# ЧАСТЬ 1: КОСТЫЛЬ ДЛЯ RENDER ( Flask )
+# ==========================================
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Бот работает и не спит!"
+
+def run_web_server():
+    # Render автоматически передает нужный порт в переменную PORT
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run_web_server)
+    t.start()
+# ==========================================
+
+
+# ==========================================
+# ЧАСТЬ 2: ВАШ КОД БОТА И ТИКЕТОВ
+# ==========================================
 # Укажите ID канала, куда бот должен пересылать заполненные анкеты
 MOD_CHANNEL_ID = 1558487534835605595  
 
@@ -81,10 +107,17 @@ async def кнопка(ctx):
     )
     await ctx.send(embed=embed, view=TicketView())
 
-# Бот запустится по токену, который сохранен в панели управления Render
-import os
+
+# ==========================================
+# ЧАСТЬ 3: ЗАПУСК ВСЕХ СЕРВИСОВ
+# ==========================================
+# 1. Сначала запускаем веб-сервер, чтобы Render его видел
+keep_alive()
+
+# 2. Берем токен из панели управления Render и запускаем бота
 BOT_TOKEN = os.environ.get("DISCORD_TOKEN")
 bot.run(BOT_TOKEN)
+
 
 
 
