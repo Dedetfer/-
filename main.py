@@ -93,10 +93,14 @@ bot = Bot()
 async def on_ready():
     print(f"Бот запущен как {bot.user}")
     try:
+        # Регистрируем кнопку в памяти бота, чтобы она работала всегда
+        bot.add_view(TicketView())
+        
         synced = await bot.sync_commands()
         print("Слэш-команды успешно синхронизированы!")
     except Exception as e:
         print(e)
+
 
 # Команда /send_ticket_button
 @bot.slash_command(name="send_ticket_button", description="Отправить кнопку для создания тикетов")
