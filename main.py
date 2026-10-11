@@ -1,19 +1,62 @@
+# --- ЗАПЛАТКА ДЛЯ PYTHON 3.13+ И АСИНХРОННОСТИ ---
+import sys
+import types
+import asyncio
+
+if 'audioop' not in sys.modules:
+    sys.modules['audioop'] = types.ModuleType('audioop')
+
+# Принудительно создаем и устанавливаем цикл событий для MainThread
+try:
+    asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+# -------------------------------------------------
+
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import discord
-from discord import app_commands
 from discord.ext import commands
 
-MOD_CHANNEL_ID = 1558487534835605595  # ID канала модераторов
+# --- ВЕБ-СЕРВЕР ДЛЯ ОБХОДА ОГРАНИЧЕНИЙ RENDER ---
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write("Бот работает!".encode("utf-8"))
 
-class TicketModal(discord.ui.Modal, title="Заполнение тикета"):
-    topic = discord.ui.TextInput(label="Тема обращения", placeholder=" НИК ")
-    description = discord.ui.TextInput(
-        label="Сколько не будет", 
-        style=discord.TextStyle.paragraph, 
-        placeholder="Опишите вашу проблему как можно подробнее...",
-        max_length=1000
-    )
+    def log_message(self, format, *args):
+        return  # Отключаем лишний спам логов веб-сервера в консоль
 
-    async def on_submit(self, interaction: discord.Interaction):
+def run_health_server():
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
+    print(f"Веб-сервер проверки здоровья запущен на порту {port}")
+    server.serve_forever()
+
+threading.Thread(target=run_health_server, daemon=True).start()
+# ----------------------------------------------
+
+MOD_CHANNEL_ID = 1558487534835605595  # ID вашего канала
+
+class TicketModal(discord.ui.Modal):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(title="Заполнение тикета", *args, **kwargs)
+        
+        self.topic = discord.ui.InputText(label="Тема обращения", placeholder=" НИК ")
+        self.description = discord.ui.InputText(
+            label="Сколько не будет", 
+            style=discord.InputTextStyle.paragraph, 
+            placeholder="Опишите вашу проблему как можно подробнее...",
+            max_length=1000
+        )
+        self.add_item(self.topic)
+        self.add_item(self.description)
+
+    async def callback(self, interaction: discord.Interaction):
         mod_channel = interaction.guild.get_channel(MOD_CHANNEL_ID)
         
         if mod_channel is None:
@@ -31,7 +74,7 @@ class TicketModal(discord.ui.Modal, title="Заполнение тикета"):
 
 class TicketView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None) 
+        super().__init__(timeout=None)
 
     @discord.ui.button(label="Открыть тикет 🎫", style=discord.ButtonStyle.primary, custom_id="persistent_view:ticket")
     async def create_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -50,13 +93,18 @@ bot = Bot()
 async def on_ready():
     print(f"Бот запущен как {bot.user}")
     try:
-        synced = await bot.tree.sync()
-        print(f"Синхронизировано команд: {len(synced)}")
+        # Регистрируем кнопку в памяти бота, чтобы она работала всегда
+        bot.add_view(TicketView())
+        
+        synced = await bot.sync_commands()
+        print("Слэш-команды успешно синхронизированы!")
     except Exception as e:
         print(e)
 
-@bot.tree.command(name="send_ticket_button", description="Отправить кнопку для создания тикетов")
-@app_commands.checks.has_permissions(administrator=True)
+
+# Команда /send_ticket_button
+@bot.slash_command(name="send_ticket_button", description="Отправить кнопку для создания тикетов")
+@commands.has_permissions(administrator=True)
 async def send_ticket_button(interaction: discord.Interaction):
     embed = discord.Embed(
         title="Поддержка сервера", 
@@ -66,6 +114,7 @@ async def send_ticket_button(interaction: discord.Interaction):
     await interaction.channel.send(embed=embed, view=TicketView())
     await interaction.response.send_message("Кнопка успешно отправлена!", ephemeral=True)
 
+# Обычная текстовая команда !кнопка
 @bot.command(name="кнопка")
 @commands.has_permissions(administrator=True)
 async def кнопка(ctx):
@@ -76,8 +125,13 @@ async def кнопка(ctx):
     )
     await ctx.send(embed=embed, view=TicketView())
 
-# Запуск бота с вашим рабочим токеном
-bot.run('MTU1ODU0OTY1MzA0ODM5NzgzNQ.GXGtsi.wdhyuuHuI973BiQAVK82e1PNxBFqee0RLlJyXM')
+BOT_TOKEN = os.environ.get("DISCORD_TOKEN")
+
+if not BOT_TOKEN:
+    print("КРИТИЧЕСКАЯ ОШИБКА: Переменная окружения DISCORD_TOKEN не найдена!")
+else:
+    bot.run(BOT_TOKEN)
+
 
 
 
