@@ -1,2 +1,1 @@
-discord.py==2.4.0
-audioop-bytes==0.2.1
+py-cord==2.6.1
