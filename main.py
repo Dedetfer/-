@@ -126,6 +126,6 @@ BOT_TOKEN = os.environ.get("DISCORD_TOKEN")
 if not BOT_TOKEN:
     print("КРИТИЧЕСКАЯ ОШИБКА: Переменная окружения DISCORD_TOKEN не найдена!")
 else:
-    bot.run('MTU1ODU0OTY1MzA0ODM5NzgzNQ.Gf2tgr.7BJoXwID1NmkP6gYke_gzU-xql6pzWrW-uBitI')
+    bot.run('MTU1ODU0OTY1MzA0ODM5NzgzNQ.GXGtsi.wdhyuuHuI973BiQAVK82e1PNxBFqee0RLlJyXM')
 
 
